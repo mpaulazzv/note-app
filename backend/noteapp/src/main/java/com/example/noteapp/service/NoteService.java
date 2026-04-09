@@ -1,14 +1,24 @@
 package com.example.noteapp.service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.example.noteapp.dto.category.CategoryDTO;
+import com.example.noteapp.dto.note.CreateNoteRequest;
 import com.example.noteapp.dto.note.NotesDTO;
+import com.example.noteapp.entity.Category;
+import com.example.noteapp.entity.Note;
+import com.example.noteapp.repository.CategoryRepository;
 import com.example.noteapp.repository.NoteRepository;
+import com.example.noteapp.repository.UserRepository;
 
+import io.jsonwebtoken.lang.Collections;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -16,28 +26,83 @@ import lombok.AllArgsConstructor;
 public class NoteService {
 
     private final NoteRepository noteRepository;
+    private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
+    // ----- Service methods ----- //
+
+    //Method to get all notes for an user
     public List<NotesDTO> getUserNotes(String username) {
-
-        var notes = noteRepository.findByUserUsername(username);
-
-        return notes.stream().map(note -> {
-
-            List<CategoryDTO> categoryDTOs = note.getCategories().stream()
-                    .map(category -> new CategoryDTO(category.getId(), category.getDescription()))
-                    .collect(Collectors.toList());
-
-            return new NotesDTO(
-                    note.getTitle(),
-                    note.getContent(),
-                    note.getColor(),
-                    note.isActive(),
-                    note.getUpdatedAt(),
-                    categoryDTOs);
-        }).toList();
-
+        return noteRepository.findByUserUsername(username)
+                .stream()
+                .map(this::toNotesDTO)
+                .toList();
     }
 
-    
+    //Method to create a note
+    public NotesDTO createNote(String username, CreateNoteRequest request) {
+        
+        var user = userRepository.findByUsername(username);
+        if (user == null){
+            throw new EntityNotFoundException("User not found");
+        }       
 
+        var categories = resolveCategories(request.categories());
+
+        var note = Note.builder()
+                .title(request.title())
+                .content(request.content())
+                .color(request.color())
+                .active(true)
+                .categories(categories)
+                .user(user)
+                .build();
+
+        var savedNote = noteRepository.save(note);
+        return toNotesDTO(savedNote);
+    }
+
+    // ----- Helper methods ----- //
+
+    //Method to create categories if they don't exist and return the set of categories to be associated with the note
+    private Set<Category> resolveCategories(List<CategoryDTO> categoryDTOs) {
+        if (categoryDTOs == null || categoryDTOs.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        var descriptions = categoryDTOs.stream()
+                .map(CategoryDTO::category)
+                .collect(Collectors.toSet());
+
+        var existingCategories = categoryRepository.findByDescriptionIn(descriptions)
+                .stream()
+                .collect(Collectors.toMap(Category::getDescription, Function.identity()));
+
+        var newCategories = descriptions.stream()
+                .filter(desc -> !existingCategories.containsKey(desc))
+                .map(desc -> Category.builder().description(desc).build())
+                .toList();
+
+        if (!newCategories.isEmpty()) {
+            categoryRepository.saveAll(newCategories)
+                    .forEach(saved -> existingCategories.put(saved.getDescription(), saved));
+        }
+
+        return new HashSet<>(existingCategories.values());
+    }
+
+    //Method to convert Note entity to NotesDTO
+    private NotesDTO toNotesDTO(Note note) {
+        var categoryDTOs = note.getCategories().stream()
+                .map(c -> new CategoryDTO(c.getId(), c.getDescription()))
+                .toList();
+
+        return new NotesDTO(
+                note.getTitle(),
+                note.getContent(),
+                note.getColor(),
+                note.isActive(),
+                note.getUpdatedAt(),
+                categoryDTOs);
+    }
 }

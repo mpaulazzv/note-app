@@ -3,6 +3,7 @@ package com.example.noteapp.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.noteapp.dto.note.CreateNoteRequest;
 import com.example.noteapp.dto.note.NotesDTO;
 import com.example.noteapp.service.NoteService;
 
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
@@ -30,9 +32,9 @@ public class NotesController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createNote() {
-        // Implement note creation logic here
-        return ResponseEntity.ok("Note created successfully");
+    public ResponseEntity<NotesDTO> createNote(Authentication authentication, @RequestBody CreateNoteRequest request) {
+        String userName = authentication.getName();
+        return ResponseEntity.ok(noteService.createNote(userName, request));
     }
      
 }

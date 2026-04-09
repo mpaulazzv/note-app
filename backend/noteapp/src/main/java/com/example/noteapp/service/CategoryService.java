@@ -22,6 +22,6 @@ public class CategoryService {
         
         categoryRepository.save(category);
 
-        return new CategoryDTO(category.getId(), category.getDescription())
+        return new CategoryDTO(category.getId(), category.getDescription());
     }
 }
