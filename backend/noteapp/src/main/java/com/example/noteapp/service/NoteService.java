@@ -24,7 +24,7 @@ public class NoteService {
         return notes.stream().map(note -> {
 
             List<CategoryDTO> categoryDTOs = note.getCategories().stream()
-                    .map(category -> new CategoryDTO(category.getDescription()))
+                    .map(category -> new CategoryDTO(category.getId(), category.getDescription()))
                     .collect(Collectors.toList());
 
             return new NotesDTO(
