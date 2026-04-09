@@ -1,6 +1,7 @@
 package com.example.noteapp.entity;
 
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,7 +27,7 @@ public class Category {
     @Column(nullable = false, unique = true)
     private String description;
 
-    @OneToMany(mappedBy = "category")
-    private List<Note> notes;
+    @OneToMany(mappedBy = "categories")
+    private Set<Note> notes;
 
 }

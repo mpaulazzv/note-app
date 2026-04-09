@@ -15,7 +15,7 @@ import com.example.noteapp.dto.exception.ExceptionResponse;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ExceptionResponse> handleUserAlreadyExists(UserAlreadyExistsException ex) {
+    public ResponseEntity<ExceptionResponse> handleUserAlreadyExists(UserAlreadyExistsException ex, WebRequest request) {
         ExceptionResponse errorResponse = new ExceptionResponse(
                 LocalDateTime.now(), "User already exists",
                 request.getDescription(false),
