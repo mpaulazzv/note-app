@@ -1,4 +1,4 @@
-package com.example.noteapp.Entities;
+package com.example.noteapp.entity;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 import lombok.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "categories")
 @Getter
 @Setter
 @NoArgsConstructor

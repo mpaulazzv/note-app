@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,7 +28,7 @@ public class User implements UserDetails {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    private String username;
 
     @Column(nullable = false)
     private String password;
@@ -37,7 +36,7 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user")
     private List<Note> notes;
 
     @Override
@@ -47,7 +46,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
     @Override

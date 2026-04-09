@@ -1,4 +1,4 @@
-package com.example.noteapp.Entities;
+package com.example.noteapp.entity;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 import lombok.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "notes")
 @Getter
 @Setter
 @NoArgsConstructor
