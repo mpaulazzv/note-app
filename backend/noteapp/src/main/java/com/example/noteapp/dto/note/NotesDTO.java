@@ -10,7 +10,7 @@ public record NotesDTO(
     String title,
     String content,
     String color,
-    Boolean isArchived,
+    Boolean isActive,
     LocalDateTime updatedAt,
     List<CategoryDTO> categories
 ) {

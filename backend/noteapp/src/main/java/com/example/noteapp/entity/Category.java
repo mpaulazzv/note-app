@@ -6,7 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.*;
 
@@ -26,7 +26,7 @@ public class Category {
     @Column(nullable = false, unique = true)
     private String description;
 
-    @OneToMany(mappedBy = "categories")
+    @ManyToMany(mappedBy = "categories")
     private Set<Note> notes;
 
 }

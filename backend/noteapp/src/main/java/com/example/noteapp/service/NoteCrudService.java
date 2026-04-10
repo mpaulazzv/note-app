@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.example.noteapp.dto.category.CategoryDTO;
 import com.example.noteapp.dto.note.CreateNoteRequest;
 import com.example.noteapp.dto.note.NotesDTO;
+import com.example.noteapp.dto.note.UpdateNoteRequest;
 import com.example.noteapp.entity.Category;
 import com.example.noteapp.entity.Note;
 import com.example.noteapp.repository.CategoryRepository;
@@ -32,7 +33,7 @@ public class NoteCrudService {
 
     // ----- Service methods ----- //
 
-    //Method to get all notes for an user
+    // Method to get all notes for an user
     public List<NotesDTO> getUserNotes(String username) {
         return noteRepository.findByUserUsername(username)
                 .stream()
@@ -40,13 +41,14 @@ public class NoteCrudService {
                 .toList();
     }
 
-    //Method to create a note
+    // Method to create a note
+    @Transactional
     public NotesDTO createNote(String username, CreateNoteRequest request) {
-        
+
         var user = userRepository.findByUsername(username);
-        if (user == null){
+        if (user == null) {
             throw new EntityNotFoundException("User not found");
-        }       
+        }
 
         var categories = resolveCategories(request.categories());
 
@@ -63,11 +65,44 @@ public class NoteCrudService {
         return toNotesDTO(savedNote);
     }
 
+    // Metod to update a note, only if it belongs to the user
     @Transactional
-    public void deleteNote (Long id, String username){
+    public NotesDTO updateNote(Long noteId, String username, UpdateNoteRequest request) {
+
+        var note = noteRepository.findByIdAndUserUsername(noteId, username);
+
+        if (note == null) {
+            throw new EntityNotFoundException("Note not found or you don't have permission to edit it");
+        }
+
+        if (request.title() != null && !request.title().isBlank()) {
+            note.setTitle(request.title());
+        }
+        if (request.content() != null && !request.content().isBlank()) {
+            note.setContent(request.content());
+        }
+        if (request.color() != null && !request.color().isBlank()) {
+            note.setColor(request.color());
+        }
+        if (request.isActive() != note.isActive()) {
+            note.setActive(request.isActive());
+        }
+            
+        if (request.categories() != null) {
+            var resolvedCategories = resolveCategories(request.categories());
+            updateCategories(note, resolvedCategories);
+        }
+
+        var savedNote = noteRepository.save(note);
+        return toNotesDTO(savedNote);
+    }
+
+    // Method to delete a note, only if it belongs to the user
+    @Transactional
+    public void deleteNote(Long id, String username) {
 
         var note = noteRepository.findByIdAndUserUsername(id, username);
-        if (note == null){
+        if (note == null) {
             throw new EntityNotFoundException("Note not found or you don't have permission to delete it");
         }
         noteRepository.delete(note);
@@ -75,7 +110,8 @@ public class NoteCrudService {
 
     // ----- Helper methods ----- //
 
-    //Method to create categories if they don't exist and return the set of categories to be associated with the note
+    // Method to create categories if they don't exist and return the set of
+    // categories to be associated with the note
     private Set<Category> resolveCategories(List<CategoryDTO> categoryDTOs) {
         if (categoryDTOs == null || categoryDTOs.isEmpty()) {
             return Collections.emptySet();
@@ -102,7 +138,7 @@ public class NoteCrudService {
         return new HashSet<>(existingCategories.values());
     }
 
-    //Method to convert Note entity to NotesDTO
+    // Method to convert Note entity to NotesDTO
     private NotesDTO toNotesDTO(Note note) {
         var categoryDTOs = note.getCategories().stream()
                 .map(c -> new CategoryDTO(c.getId(), c.getDescription()))
@@ -116,5 +152,22 @@ public class NoteCrudService {
                 note.isActive(),
                 note.getUpdatedAt(),
                 categoryDTOs);
+    }
+
+    // Method to update the category list of a note
+    private void updateCategories(Note note, Set<Category> newCategories) {
+
+        var currentCategories = note.getCategories();
+
+        var toRemove = currentCategories.stream()
+                .filter(c -> !newCategories.contains(c))
+                .collect(Collectors.toSet());
+
+        var toAdd = newCategories.stream()
+                .filter(c -> !currentCategories.contains(c))
+                .collect(Collectors.toSet());
+
+        currentCategories.removeAll(toRemove);
+        currentCategories.addAll(toAdd);
     }
 }
