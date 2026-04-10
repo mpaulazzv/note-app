@@ -9,5 +9,6 @@ import com.example.noteapp.entity.Note;
 public interface NoteRepository extends JpaRepository<Note, Long> {
 
     List<Note> findByUserUsername(String username);
+    Note findByIdAndUserUsername(Long id, String username);
 
 }

@@ -19,11 +19,12 @@ import com.example.noteapp.repository.UserRepository;
 
 import io.jsonwebtoken.lang.Collections;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
-public class NoteService {
+public class NoteCrudService {
 
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
@@ -62,6 +63,16 @@ public class NoteService {
         return toNotesDTO(savedNote);
     }
 
+    @Transactional
+    public void deleteNote (Long id, String username){
+
+        var note = noteRepository.findByIdAndUserUsername(id, username);
+        if (note == null){
+            throw new EntityNotFoundException("Note not found or you don't have permission to delete it");
+        }
+        noteRepository.delete(note);
+    }
+
     // ----- Helper methods ----- //
 
     //Method to create categories if they don't exist and return the set of categories to be associated with the note
@@ -98,6 +109,7 @@ public class NoteService {
                 .toList();
 
         return new NotesDTO(
+                note.getId(),
                 note.getTitle(),
                 note.getContent(),
                 note.getColor(),

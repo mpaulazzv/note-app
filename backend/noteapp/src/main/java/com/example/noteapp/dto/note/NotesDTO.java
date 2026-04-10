@@ -6,6 +6,7 @@ import java.util.List;
 import com.example.noteapp.dto.category.CategoryDTO;
 
 public record NotesDTO(
+    Long id,
     String title,
     String content,
     String color,
