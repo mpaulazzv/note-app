@@ -1,39 +1,46 @@
 import { useState } from "react";
-import type { CategoryDTO, CreateNoteRequest, NotesDTO } from "../types";
+import type { CategoryDTO, CreateNoteRequest, NotesDTO, UpdateNoteRequest } from "../types";
 
 const COLORS = [
     { key: 'yellow', bg: '#fef08a', border: '#fde047' },
-    { key: 'blue', bg: '#bfdbfe', border: '#93c5fd' },
-    { key: 'pink', bg: '#fbcfe8', border: '#f9a8d4' },
+    { key: 'blue',   bg: '#bfdbfe', border: '#93c5fd' },
+    { key: 'pink',   bg: '#fbcfe8', border: '#f9a8d4' },
     { key: 'purple', bg: '#e9d5ff', border: '#d8b4fe' },
 ];
 
-const CreateModal: React.FC<{ onClose: () => void; onCreate: (req: CreateNoteRequest) => Promise<void> }> = ({ onClose, onCreate }) => {
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [color, setColor] = useState('yellow');
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+interface NoteModalProps {
+    onClose: () => void;
+    onCreate?: (req: CreateNoteRequest) => Promise<void>;
+    note?: NotesDTO;
+    onUpdate?: (id: number, req: UpdateNoteRequest) => Promise<void>;
+}
+
+const NoteModal: React.FC<NoteModalProps> = ({ onClose, onCreate, note, onUpdate }) => {
+    const isEditMode = !!note;
+
+    const [title, setTitle]       = useState(note?.title ?? '');
+    const [content, setContent]   = useState(note?.content ?? '');
+    const [color, setColor]       = useState(note?.color ?? 'yellow');
+    const [isActive, setIsActive] = useState(note?.isActive ?? true);
+    const [saving, setSaving]     = useState(false);
+    const [error, setError]       = useState<string | null>(null);
 
     const [categoryInput, setCategoryInput] = useState('');
-    const [categories, setCategories] = useState<Partial<NotesDTO['categories']>>([]);
+    const [categories, setCategories] = useState<Partial<NotesDTO['categories']>>(
+        note?.categories ?? []
+    );
 
     const addCategory = () => {
         const name = categoryInput.trim().toLowerCase();
         if (name && !categories.find(c => c?.category === name)) {
-            const newCategory = {
-                id: Math.random(), 
-                category: name
-            };
-
-            setCategories([...categories, newCategory]);
+            setCategories([...categories, { id: Math.random(), category: name }]);
             setCategoryInput('');
         }
     };
 
     const removeCategory = (index: number) => {
-    setCategories(categories.filter((_, i) => i !== index));
-  };
+        setCategories(categories.filter((_, i) => i !== index));
+    };
 
     const selectedColor = COLORS.find(c => c.key === color)!;
 
@@ -42,10 +49,25 @@ const CreateModal: React.FC<{ onClose: () => void; onCreate: (req: CreateNoteReq
         setSaving(true);
         setError(null);
         try {
-            await onCreate({ title: title.trim(), content, color, categories: categories as CategoryDTO[] });
+            if (isEditMode && onUpdate && note) {
+                await onUpdate(note.id, {
+                    title: title.trim(),
+                    content,
+                    color,
+                    isActive,
+                    categories: categories as CategoryDTO[],
+                });
+            } else if (onCreate) {
+                await onCreate({
+                    title: title.trim(),
+                    content,
+                    color,
+                    categories: categories as CategoryDTO[],
+                });
+            }
             onClose();
         } catch {
-            setError('Failed to create note. Please try again.');
+            setError(`Failed to ${isEditMode ? 'update' : 'create'} note. Please try again.`);
         } finally {
             setSaving(false);
         }
@@ -61,7 +83,9 @@ const CreateModal: React.FC<{ onClose: () => void; onCreate: (req: CreateNoteReq
                 className="flex w-[min(440px,92vw)] flex-col gap-4 rounded-[24px] p-[28px_26px_22px] shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-6 duration-300 ease-out"
                 style={{ background: selectedColor.bg, border: `1.5px solid ${selectedColor.border}` }}
             >
-                <h2 className="m-0 font-sans font-bold text-[1.3rem] text-[#1e1b2e]">New Note</h2>
+                <h2 className="m-0 font-sans font-bold text-[1.3rem] text-[#1e1b2e]">
+                    {isEditMode ? 'Edit Note' : 'New Note'}
+                </h2>
 
                 <div className="flex gap-2">
                     {COLORS.map(c => (
@@ -102,7 +126,6 @@ const CreateModal: React.FC<{ onClose: () => void; onCreate: (req: CreateNoteReq
                     <label className="font-sans text-xs font-bold uppercase tracking-wider text-[#1e1b2e]/60 px-1">
                         Categories
                     </label>
-
                     <div className="flex flex-wrap gap-2 mb-1">
                         {categories.map((cat, i) => (
                             <span
@@ -111,17 +134,16 @@ const CreateModal: React.FC<{ onClose: () => void; onCreate: (req: CreateNoteReq
                             >
                                 {cat?.category}
                                 <button onClick={() => removeCategory(i)} className="hover:text-red-500">
-                                    x
+                                    ×
                                 </button>
                             </span>
                         ))}
                     </div>
-
                     <div className="relative flex items-center">
                         <input
                             value={categoryInput}
-                            onChange={(e) => setCategoryInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCategory())}
+                            onChange={e => setCategoryInput(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCategory())}
                             placeholder="Ex: work, personal, health..."
                             className="w-full rounded-lg border bg-white/50 px-3 py-2 font-sans text-sm outline-none pr-10"
                             style={{ borderColor: selectedColor.border }}
@@ -130,10 +152,31 @@ const CreateModal: React.FC<{ onClose: () => void; onCreate: (req: CreateNoteReq
                             onClick={addCategory}
                             className="absolute right-2 p-1 text-[#1e1b2e] hover:bg-white/30 rounded-md transition-colors"
                         >
-
+                            +
                         </button>
                     </div>
                 </div>
+
+                {isEditMode && (
+                    <div className="flex items-center justify-between rounded-lg border bg-white/30 px-[14px] py-[10px]"
+                        style={{ borderColor: selectedColor.border }}>
+                        <span className="font-sans text-[0.85rem] font-semibold text-[#1e1b2e]">
+                            {isActive ? 'Active note' : 'Archived note'}
+                        </span>
+                        <button
+                            onClick={() => setIsActive(prev => !prev)}
+                            className={`relative h-[22px] w-[40px] rounded-full transition-colors duration-200 cursor-pointer ${
+                                isActive ? 'bg-[#1e1b2e]' : 'bg-[#1e1b2e]/25'
+                            }`}
+                        >
+                            <span
+                                className={`absolute left-0 top-[3px] h-[16px] w-[16px] rounded-full bg-white transition-transform duration-200 ${
+                                    isActive ? 'translate-x-[21px]' : 'translate-x-[3px]'
+                                }`}
+                            />
+                        </button>
+                    </div>
+                )}
 
                 <div className="flex justify-end gap-[10px]">
                     <button
@@ -146,9 +189,11 @@ const CreateModal: React.FC<{ onClose: () => void; onCreate: (req: CreateNoteReq
                     <button
                         onClick={handleSubmit}
                         disabled={saving}
-                        className={`rounded-lg bg-[#1e1b2e] px-[22px] py-2 font-sans text-[0.83rem] font-bold text-white transition-opacity ${saving ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
+                        className={`rounded-lg bg-[#1e1b2e] px-[22px] py-2 font-sans text-[0.83rem] font-bold text-white transition-opacity ${
+                            saving ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'
+                        }`}
                     >
-                        {saving ? 'Saving…' : 'Save'}
+                        {saving ? 'Saving…' : isEditMode ? 'Update' : 'Save'}
                     </button>
                 </div>
             </div>
@@ -156,4 +201,4 @@ const CreateModal: React.FC<{ onClose: () => void; onCreate: (req: CreateNoteReq
     );
 };
 
-export default CreateModal;
+export default NoteModal;

@@ -23,13 +23,14 @@ function formatDate(iso: string) {
 
 interface NoteProps {
   note: NotesDTO;
+  onClick?: () => void;
 }
 
-export const Note: React.FC<NoteProps> = ({ note }) => {
+export const Note: React.FC<NoteProps> = ({ note, onClick }) => {
   const tokens = getColorTokens(note.color);
 
   return (
-    <article
+    <article onClick={onClick}
       className="group relative flex lg:min-h-80 min-h-60 cursor-pointer flex-col gap-2.5 overflow-hidden rounded-[18px] p-[22px_20px_16px] backdrop-blur-[12px] backdrop-saturate-[1.4] transition-all duration-[0.22s] cubic-bezier-[0.34,1.56,0.64,1] hover:-translate-y-[3px] hover:scale-[1.013]"
       style={{
         background: tokens.glass,

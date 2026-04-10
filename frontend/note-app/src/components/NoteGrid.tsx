@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Note } from './Note';
 import { notesService } from '../services/notes.service';
-import type { NotesDTO } from '../types';
-import  CreateModal  from './CreateModal';
+import type { NotesDTO, UpdateNoteRequest } from '../types';
 import AddNoteSlot from './AddNoteSlot';
+import NoteModal from './NoteModal';
 
 
 export const NoteGrid: React.FC = () => {
@@ -11,6 +11,18 @@ export const NoteGrid: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+
+  const [selectedNote, setSelectedNote] = useState<NotesDTO | null>(null);
+
+  // Handler de update
+  async function handleUpdate(id: number, req: UpdateNoteRequest) {
+    const updated = await notesService.updateNote(id, req);
+    setNotes(prev =>
+      updated.isActive
+        ? prev.map(n => n.id === id ? updated : n)
+        : prev.filter(n => n.id !== id)   // si se archivó, sale del grid
+    );
+  }
 
   useEffect(() => {
     fetchNotes();
@@ -54,13 +66,22 @@ export const NoteGrid: React.FC = () => {
     <>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-[18px] p-6">
         <AddNoteSlot onClick={() => setShowModal(true)} />
-        {notes.map(note => <Note key={note.id} note={note} />)}
+        {notes.map(note => <Note key={note.id} note={note} onClick={() => setSelectedNote(note)} />)}
       </div>
 
-      {showModal && <CreateModal onClose={() => setShowModal(false)} onCreate={async (req) => {
-        const newNote = await notesService.createNote(req);
-        setNotes(prev => [newNote, ...prev]);
-      }} />}
+      {(showModal || selectedNote) && (
+    <NoteModal
+        onClose={() => { setShowModal(false); setSelectedNote(null); }}
+        {...(selectedNote
+            ? { note: selectedNote, onUpdate: handleUpdate }
+            : { onCreate: async (req) => {
+                    const newNote = await notesService.createNote(req);
+                    setNotes(prev => [newNote, ...prev]);
+                }
+              }
+        )}
+    />
+)}
     </>
   );
 };
