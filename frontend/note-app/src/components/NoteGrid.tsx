@@ -52,7 +52,7 @@ export const NoteGrid: React.FC = () => {
 
   return (
     <>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-[18px] p-6">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-[18px] p-6">
         <AddNoteSlot onClick={() => setShowModal(true)} />
         {notes.map(note => <Note key={note.id} note={note} />)}
       </div>

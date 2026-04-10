@@ -16,7 +16,7 @@ function getColorTokens(color: string) {
 }
 
 function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('es-CO', {
+  return new Intl.DateTimeFormat('en-US', {
     day: '2-digit', month: 'short', year: 'numeric',
   }).format(new Date(iso));
 }
@@ -30,7 +30,7 @@ export const Note: React.FC<NoteProps> = ({ note }) => {
 
   return (
     <article
-      className="group relative flex min-h-[180px] cursor-pointer flex-col gap-[10px] overflow-hidden rounded-[18px] p-[22px_20px_16px] backdrop-blur-[12px] backdrop-saturate-[1.4] transition-all duration-[0.22s] cubic-bezier-[0.34,1.56,0.64,1] hover:-translate-y-[3px] hover:scale-[1.013]"
+      className="group relative flex lg:min-h-80 min-h-60 cursor-pointer flex-col gap-2.5 overflow-hidden rounded-[18px] p-[22px_20px_16px] backdrop-blur-[12px] backdrop-saturate-[1.4] transition-all duration-[0.22s] cubic-bezier-[0.34,1.56,0.64,1] hover:-translate-y-[3px] hover:scale-[1.013]"
       style={{
         background: tokens.glass,
         border: `1.5px solid ${tokens.border}`,

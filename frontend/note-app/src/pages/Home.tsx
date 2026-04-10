@@ -2,7 +2,7 @@ import { NoteGrid } from "../components/NoteGrid";
 
 const Home = () => {
   return (
-    <main className="flex min-h-screen flex-col items-center bg-[#fcf1ff]">
+    <main className="flex min-h-screen flex-col items-center bg-[#fcf1ff] overflow-x-hidden">
       <div className="text-center w-screen screen">
         <header className="my-8 text-center">
           <h1 className="font-sans text-5xl font-bold tracking-tight text-black">
