@@ -1,7 +1,6 @@
 import React from 'react';
 import type { NotesDTO } from '../types';
 
-
 const COLOR_MAP: Record<string, { bg: string; glass: string; border: string; accent: string }> = {
   blue:   { bg: '#bfdbfe', glass: 'rgba(191,219,254,0.55)', border: 'rgba(147,197,253,0.6)', accent: '#3b82f6' },
   pink:   { bg: '#fbcfe8', glass: 'rgba(251,207,232,0.55)', border: 'rgba(249,168,212,0.6)', accent: '#ec4899' },
@@ -24,10 +23,16 @@ function formatDate(iso: string) {
 interface NoteProps {
   note: NotesDTO;
   onClick?: () => void;
+  onDelete?: (id: number) => void;
 }
 
-export const Note: React.FC<NoteProps> = ({ note, onClick }) => {
+export const Note: React.FC<NoteProps> = ({ note, onClick, onDelete }) => {
   const tokens = getColorTokens(note.color);
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) onDelete(note.id);
+  };
 
   return (
     <article onClick={onClick}
@@ -38,18 +43,16 @@ export const Note: React.FC<NoteProps> = ({ note, onClick }) => {
         boxShadow: `0 2px 12px ${tokens.bg}66, 0 1px 4px rgba(0,0,0,0.04)`,
       }}
     >
-      <style dangerouslySetInnerHTML={{ __html: `
-        .note-card-${note.id}:hover {
-          box-shadow: 0 8px 32px ${tokens.bg}88, 0 2px 8px rgba(0,0,0,0.07) !important;
-        }
-      `}} />
+      <button 
+        onClick={handleDelete}
+        className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-black/40 opacity-0 transition-opacity hover:bg-red-500 hover:text-white group-hover:opacity-100"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/>
+        </svg>
+      </button>
 
-      <span 
-        className="absolute top-[14px] right-[16px] h-[9px] w-[9px] rounded-full opacity-75"
-        style={{ background: tokens.accent }}
-      />
-
-      <h3 className="m-0 line-clamp-2 pr-[18px] font-sans text-[1rem] font-bold leading-[1.25] tracking-tight text-[#501453]">
+      <h3 className="m-0 line-clamp-2 pr-[24px] font-sans text-[1rem] font-bold leading-[1.25] tracking-tight text-[#501453]">
         {note.title}
       </h3>
 
@@ -72,11 +75,6 @@ export const Note: React.FC<NoteProps> = ({ note, onClick }) => {
               {cat.category}
             </span>
           ))}
-          {note.categories.length > 2 && (
-            <span className="font-sans text-[0.65rem] text-gray-400">
-              +{note.categories.length - 2}
-            </span>
-          )}
         </div>
 
         <span className="whitespace-nowrap font-sans text-[0.68rem] text-purple-950">

@@ -4,6 +4,7 @@ import { notesService } from '../services/notes.service';
 import type { NotesDTO, UpdateNoteRequest } from '../types';
 import AddNoteSlot from './AddNoteSlot';
 import NoteModal from './NoteModal';
+import Swal from 'sweetalert2';
 
 export const NoteGrid: React.FC = () => {
   const [notes, setNotes] = useState<NotesDTO[]>([]);
@@ -38,6 +39,42 @@ export const NoteGrid: React.FC = () => {
         : prev.filter(n => n.id !== id)
     );
   }
+
+  const handleDeleteSuccess = () => {
+  Swal.fire({
+    title: 'Deleted!',
+    text: 'Your note has been removed.',
+    icon: 'success', // This triggers the checkmark animation
+    confirmButtonColor: '#a855f7',
+  });
+};
+
+const confirmDelete = (id: number) => {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning', // This triggers the warning animation
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      handleDelete(id);
+    }
+    handleDeleteSuccess();
+  });
+};
+
+  async function handleDelete(id: number) {
+    try {
+      await notesService.deleteNote(id);
+      setNotes(prev => prev.filter(n => n.id !== id));
+    } catch {
+      alert('Error deleting note');
+    }
+  
+}
 
   if (loading) {
     return (
@@ -81,7 +118,7 @@ export const NoteGrid: React.FC = () => {
         <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-[18px] p-6">
           {filterActive && <AddNoteSlot onClick={() => setShowModal(true)} />}
           {notes.map(note => (
-            <Note key={note.id} note={note} onClick={() => setSelectedNote(note)} />
+            <Note key={note.id} note={note} onClick={() => setSelectedNote(note)} onDelete={confirmDelete} />
           ))}
         </div>
       )}
