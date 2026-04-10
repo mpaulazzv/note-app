@@ -1,14 +1,18 @@
+import { NoteGrid } from "../components/NoteGrid";
 
 const Home = () => {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-5xl font-extrabold text-blue-600 mb-2">
-          Hello
-        </h1>
-        <p className="text-gray-500 text-lg italic">
-          SPA notes page
-        </p>
+    <main className="flex min-h-screen flex-col items-center bg-[#fcf1ff]">
+      <div className="text-center w-screen screen">
+        <header className="my-8 text-center">
+          <h1 className="font-sans text-5xl font-bold tracking-tight text-black">
+            My Notes
+          </h1>
+          <p className="mt-3 font-sans text-lg text-black/50">
+            Easily organize your ideas
+          </p>
+        </header>
+        <NoteGrid></NoteGrid>
       </div>
     </main>
   );
