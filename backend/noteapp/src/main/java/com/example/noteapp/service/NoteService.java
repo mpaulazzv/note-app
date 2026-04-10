@@ -25,7 +25,7 @@ import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
-public class NoteCrudService {
+public class NoteService {
 
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
@@ -36,6 +36,14 @@ public class NoteCrudService {
     // Method to get all notes for an user
     public List<NotesDTO> getUserNotes(String username) {
         return noteRepository.findByUserUsername(username)
+                .stream()
+                .map(this::toNotesDTO)
+                .toList();
+    }
+
+    //Method to get active/inactive notes for an user
+    public List<NotesDTO> getNotesByIsActive(Boolean isActive, String username) {
+        return noteRepository.findByActiveAndUserUsername(isActive, username)
                 .stream()
                 .map(this::toNotesDTO)
                 .toList();

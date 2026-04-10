@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.noteapp.dto.note.CreateNoteRequest;
 import com.example.noteapp.dto.note.NotesDTO;
 import com.example.noteapp.dto.note.UpdateNoteRequest;
-import com.example.noteapp.service.NoteCrudService;
+import com.example.noteapp.service.NoteService;
 
 import lombok.AllArgsConstructor;
 
@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 
@@ -28,7 +30,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 @AllArgsConstructor
 public class NotesController {
 
-    private final NoteCrudService noteService;
+    private final NoteService noteService;
 
     @GetMapping("/")
     public ResponseEntity<List<NotesDTO>> getUserNotes(Authentication authentication) {
@@ -36,6 +38,12 @@ public class NotesController {
         return ResponseEntity.ok(noteService.getUserNotes(userName));
     }
 
+    @GetMapping("/filter")
+    public ResponseEntity<List<NotesDTO>> getNotesByIsActive(@RequestParam Boolean isActive, Authentication authentication) {
+        String userName = authentication.getName();
+        return ResponseEntity.ok(noteService.getNotesByIsActive(isActive, userName));
+    }
+    
     @PostMapping("/create")
     public ResponseEntity<NotesDTO> createNote(Authentication authentication, @RequestBody CreateNoteRequest request) {
         String userName = authentication.getName();

@@ -7,6 +7,11 @@ export const notesService = {
     return await apiFetch('/notes/');
   },
 
+  getFilteredNotes: async (isActive: boolean): Promise<NotesDTO[]> => {
+    return await apiFetch(`/notes/filter?isActive=${isActive}`);
+  },
+
+
   createNote: async (request: CreateNoteRequest): Promise<NotesDTO> => {
     return await apiFetch('/notes/create', {
       method: 'POST',
