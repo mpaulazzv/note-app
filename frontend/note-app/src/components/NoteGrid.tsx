@@ -63,13 +63,13 @@ const confirmDelete = (id: number) => {
     if (result.isConfirmed) {
       await handleDelete(id);
     }
-    handleDeleteSuccess();
   });
 };
 
   async function handleDelete(id: number) {
     try {
       await notesService.deleteNote(id);
+      handleDeleteSuccess();
       setNotes(prev => prev.filter(n => n.id !== id));
     } catch {
       Swal.fire({
