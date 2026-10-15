@@ -61,8 +61,8 @@ const confirmDelete = (id: number) => {
   }).then((result) => {
     if (result.isConfirmed) {
       handleDelete(id);
+      handleDeleteSuccess();
     }
-    handleDeleteSuccess();
   });
 };
 
