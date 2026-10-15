@@ -42,8 +42,8 @@ export const NoteGrid: React.FC = () => {
 
   const handleDeleteSuccess = () => {
   Swal.fire({
-    title: 'Deleted!',
-    text: 'Your note has been removed.',
+    title: '¡Eliminada!',
+    text: 'Tu nota ha sido eliminada.',
     icon: 'success', // This triggers the checkmark animation
     confirmButtonColor: '#a855f7',
   });
@@ -51,17 +51,17 @@ export const NoteGrid: React.FC = () => {
 
 const confirmDelete = (id: number) => {
   Swal.fire({
-    title: 'Are you sure?',
-    text: "You won't be able to revert this!",
+    title: '¿Estás seguro?',
+    text: '¡No podrás revertir esta acción!',
     icon: 'warning', // This triggers the warning animation
     showCancelButton: true,
     confirmButtonColor: '#ef4444',
     cancelButtonColor: '#6b7280',
-    confirmButtonText: 'Yes, delete it!'
-  }).then((result) => {
+    confirmButtonText: 'Sí, eliminarla',
+    cancelButtonText: 'Cancelar'
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      handleDelete(id);
-      handleDeleteSuccess();
+      await handleDelete(id);
     }
   });
 };
@@ -69,9 +69,15 @@ const confirmDelete = (id: number) => {
   async function handleDelete(id: number) {
     try {
       await notesService.deleteNote(id);
+      handleDeleteSuccess();
       setNotes(prev => prev.filter(n => n.id !== id));
     } catch {
-      alert('Error deleting note');
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo eliminar la nota.',
+        icon: 'error',
+        confirmButtonColor: '#a855f7',
+      });
     }
   
 }
